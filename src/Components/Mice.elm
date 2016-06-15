@@ -13,7 +13,10 @@ type alias Model =
   , numberClicks: Int
   }
 
-type Msg = NoOp
+type Msg
+ = NoOp
+ | MouseMove Position
+ | MouseClick
 
 model : Model
 model =
@@ -27,7 +30,13 @@ model =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    NoOp -> (model, Cmd.none)
+    NoOp ->
+      (model, Cmd.none)
+    MouseMove position ->
+      ({ model | mousePosition = position }, Cmd.none)
+    MouseClick ->
+      ({ model | numberClicks = model.numberClicks + 1 }, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
