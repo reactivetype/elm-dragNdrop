@@ -5,7 +5,7 @@ import Html.App exposing (program)
 import Html.Attributes exposing (..)
 import Html.Events exposing (on)
 import Json.Decode as Json exposing ((:=))
-import Mouse exposing (Position)
+import Mouse exposing (Position, clicks, moves)
 
 
 type alias Model =
@@ -16,7 +16,7 @@ type alias Model =
 type Msg
  = NoOp
  | MouseMove Position
- | MouseClick
+ | MouseClick Position
 
 model : Model
 model =
@@ -34,7 +34,7 @@ update msg model =
       (model, Cmd.none)
     MouseMove position ->
       ({ model | mousePosition = position }, Cmd.none)
-    MouseClick ->
+    MouseClick _ ->
       ({ model | numberClicks = model.numberClicks + 1 }, Cmd.none )
 
 
@@ -61,7 +61,11 @@ view model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model = Sub.none
+subscriptions model =
+  let
+    mouseMove = moves MouseMove
+    mouseClick = clicks MouseClick
+  in Sub.batch [ mouseMove, mouseClick ]
 
 --main = program { init = (model, Cmd.none) , update = update, view = view, subscriptions = subscriptions }
 
