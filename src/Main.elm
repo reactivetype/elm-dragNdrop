@@ -5,9 +5,15 @@ import Html.Events exposing ( onClick )
 
 -- component import example
 import Components.Card as Card
+import Components.Mice as Mice
 
 
 -- APP
 main : Program Never
 main =
-  Html.beginnerProgram { model = Card.model, view = Card.view, update = Card.update }
+  Html.program
+    { init = (Mice.model, Cmd.none)
+    , view = Mice.view
+    , update = Mice.update
+    , subscriptions = Mice.subscriptions
+    }

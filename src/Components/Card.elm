@@ -8,71 +8,77 @@ import Html.Events exposing (onInput, keyCode, targetValue, on)
 import Json.Decode as Json
 import Dict exposing (Dict)
 
-type alias Task = 
+type alias Task =
   { name : String
   }
-type alias Model = { tasks : Dict Int Task, nextId : Int}
+type alias Model =
+  { tasks : Dict Int Task
+  , nextId : Int
+  , field : String
+  }
 
 
 model : Model
-model = { tasks = Dict.empty, nextId = 0 }
+model =
+  { tasks = Dict.empty
+  , nextId = 0
+  , field = ""
+  }
 
-type Msg 
+type Msg
   = AddItem String
+  | UpdateField String
   | NoOp
 
 update : Msg -> Model -> Model
 update msg model =
-  case (msg, model) of 
-    (AddItem taskName, { tasks, nextId }) -> 
-      let 
+  case (msg, model) of
+    (AddItem taskName, { tasks, nextId, field }) ->
+      let
         newTasks = Dict.insert nextId { name = taskName } tasks
-      in { tasks = newTasks, nextId = nextId + 1 }
+      in { tasks = newTasks, nextId = nextId + 1, field = "" }
+    (UpdateField newField, _) -> { model | field = newField }
     (NoOp, model) -> model
 
 view : Model -> Html Msg
-view model = 
-  let 
-    cardStyle = 
+view model =
+  let
+    cardStyle =
       style <| List.concatMap identity
                 [ backColor, size, alignment, misc ]
 
     itemView : Task -> Html Msg
-    itemView = 
-      \entity -> 
-        let
-          place = ""
-        in 
-          input 
-            [
-              type' "text"
-            , class "form-control input-sm col-xs-1"
-            , placeholder "Enter task name"
-            , value entity.name
-            , style [
-                  ("margin-top", "10px")
-                , ("margin-bottom", "5px")
-              ]
-            ] []
+    itemView =
+      \entity ->
+        input
+          [
+            type' "text"
+          , class "form-control input-sm col-xs-1"
+          , placeholder "Enter task name"
+          , value entity.name
+          , style [
+                ("margin-top", "10px")
+              , ("margin-bottom", "5px")
+            ]
+          ] []
 
-    newItemInput = 
-      input 
-        [
-          type' "text"
+    newItemInput =
+      input
+        [ type' "text"
         , class "form-control input-sm col-xs-1"
         , placeholder "New Task"
+        , value model.field
+        , autofocus True
         , onEnter NoOp AddItem
-        , style [
-              ("margin-top", "10px")
-            , ("margin-bottom", "10px")
-          ]
+        , onInputChange UpdateField
+        , style [("margin-top", "10px"), ("margin-bottom", "10px")]
         ] []
 
     taskList = Dict.values model.tasks
 
-    items = newItemInput :: (List.map itemView taskList)
+    items = (newItemInput) :: (List.map itemView taskList)
 
-  in div [] 
+  in div []
       [ div [cardStyle, class "col-md-3"] (items)
       , text << toString <| model
       ]
@@ -87,19 +93,21 @@ onEnter fail success =
   in
     on "keyup" (Json.object2 tagger keyCode targetValue)
 
+onInputChange success =
+  on "input" (Json.map success targetValue)
 
 -- CSS styles
 backColor = [ ("background-color", "lightblue") ]
 noBorder = [ ("border", "none") ]
-size = 
+size =
   [ ("width" , "150px")
   ]
-position = 
-  [ 
+position =
+  [
     ("left" , "10px")
   , ("top" , "10px")
   ]
-alignment = 
+alignment =
   [ ("align-items" , "center")
   , ("justify-content" , "center")
   , ("margin-left", "5px")
@@ -108,6 +116,6 @@ alignment =
   , ("margin-bottom", "5px")
   , ("padding", "10px")
   ]
-misc = 
+misc =
   [ ("border-radius" , "10px")
   , ("color" , "black") ]
