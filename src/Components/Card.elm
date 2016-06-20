@@ -18,8 +18,8 @@ type alias Model =
   }
 
 
-model : Model
-model =
+init : Model
+init =
   { tasks = Dict.empty
   , nextId = 0
   , field = ""
@@ -40,12 +40,13 @@ update msg model =
     (UpdateField newField, _) -> { model | field = newField }
     (NoOp, model) -> model
 
+(=>) = (,)
 view : Model -> Html Msg
 view model =
   let
     cardStyle =
       style <| List.concatMap identity
-                [ backColor, size, alignment, misc ]
+                [ backColor, border, font, size, alignment, misc ]
 
     itemView : Task -> Html Msg
     itemView =
@@ -56,9 +57,12 @@ view model =
           , class "form-control input-sm col-xs-1"
           , placeholder "Enter task name"
           , value entity.name
+          , draggable "true"
           , style [
-                ("margin-top", "10px")
-              , ("margin-bottom", "5px")
+                "margin-top" => "10px"
+              , "margin-bottom" => "5px"
+              , "border" => "dashed 1px gray"
+              , "border-radius" => "<0px></0px>"
             ]
           ] []
 
@@ -78,8 +82,9 @@ view model =
 
     items = (newItemInput) :: (List.map itemView taskList)
 
+
   in div []
-      [ div [cardStyle, class "col-md-3"] (items)
+      [ div [cardStyle, class "col-md-3", draggable "true", dropzone "true"] (items)
       , text << toString <| model
       ]
 
@@ -97,25 +102,30 @@ onInputChange success =
   on "input" (Json.map success targetValue)
 
 -- CSS styles
-backColor = [ ("background-color", "lightblue") ]
-noBorder = [ ("border", "none") ]
+backColor = [ "background-color" => "#f6f6f6" ]
+border =
+  [ "border" => "solid 1px black"
+  , "border-radius" => "10px"
+  ]
+font =
+  [ "color" => "white"
+  , "font-size" => "20px"
+  , "font-family" => "Comic Sans MS"
+  ]
 size =
-  [ ("width" , "150px")
+  [ "width" => "150px"
   ]
 position =
-  [
-    ("left" , "10px")
-  , ("top" , "10px")
+  [ "left" => "10px"
+  , "top" => "10px"
   ]
 alignment =
-  [ ("align-items" , "center")
-  , ("justify-content" , "center")
-  , ("margin-left", "5px")
-  , ("margin-right", "5px")
-  , ("margin-top", "5px")
-  , ("margin-bottom", "5px")
-  , ("padding", "10px")
+  [ "align-items" => "center"
+  , "justify-content" => "center"
+  , "margin" => "5px"
+  , "padding" => "10px"
   ]
 misc =
-  [ ("border-radius" , "10px")
-  , ("color" , "black") ]
+  [
+
+  ]
