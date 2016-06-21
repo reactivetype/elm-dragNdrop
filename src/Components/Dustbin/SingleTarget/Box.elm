@@ -1,4 +1,4 @@
-module Components.DustBin.SingleTarget.Box exposing (Model, Msg(..), name, init, createWith, view, update)
+module Components.DustBin.SingleTarget.Box exposing (Model, Msg(..), name, isDropped, init, createWith, view, update)
 
 import Html exposing (..)
 import Html.App as Html
@@ -8,7 +8,7 @@ import Json.Decode as Json exposing ((:=), string)
 import Mouse exposing (Position)
 
 -- Model
-type Status = Outside | Inside
+type Status = Idle | Dropped
 type alias Drag =
   { start : Position
   , current: Position
@@ -44,15 +44,18 @@ init =
   let
     box =
       { name = "A box"
-      , status = Outside
+      , status = Idle
       , position = Position 100 100
       , drag = Nothing
       }
   in (box, Cmd.none)
 
+isDropped : Model -> Bool
+isDropped model = model.status == Dropped
+
 createWith : String -> Position -> Model
 createWith name position =
-  Box name Outside position Nothing
+  Box name Idle position Nothing
 
 
 -- View
@@ -81,6 +84,8 @@ updateModel msg model =
     (DragStarted {name, position}, _) ->
       {model | drag = Just (Drag position position)}
     (DragAt {name, position}, _) ->
+      if (position.x == 0 && position.y == 0) then model
+      else
         let
           newDrag = Maybe.map (\{start} -> Drag start position) model.drag
         in {model | drag = newDrag }

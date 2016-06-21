@@ -65,7 +65,7 @@ subscriptions _ = Sub.none
 -- Drag event handlers
 onDragOver : msg -> Attribute msg
 onDragOver tagger =
-  onWithOptions "dragover" { preventDefault = True, stopPropagation = False } (Json.succeed tagger)
+  onWithOptions "dragover" { preventDefault = True, stopPropagation = True } (Json.succeed tagger)
 
 onDragLeave : msg -> Attribute msg
 onDragLeave tagger =

@@ -61,7 +61,10 @@ view : Model -> Html Msg
 view {bin, boxes} =
   let
     binView = Html.map Bin <| Bin.view bin
-    boxViews = List.map (Html.map Box << Box.view) (Dict.values boxes)
+    boxViews =
+      (Dict.values boxes)
+      |> List.filter (not << Box.isDropped)
+      |> List.map (Html.map Box << Box.view)
     children : List (Html Msg)
     children = binView :: boxViews
   in
