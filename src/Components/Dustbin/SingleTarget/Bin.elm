@@ -38,6 +38,7 @@ view model =
     div
       [ onDragOver DraggedOver
       , onDragLeave DragLeft
+      , onDrop (InsertBox "Box inserted")
       , dropzone "true"
       , style (styleSheet ++ backgroundColor)
       ] (text "Drop it like it's hot!" :: labels)
@@ -64,11 +65,15 @@ subscriptions _ = Sub.none
 -- Drag event handlers
 onDragOver : msg -> Attribute msg
 onDragOver tagger =
-  on "dragover" (Json.succeed tagger)
+  onWithOptions "dragover" { preventDefault = True, stopPropagation = False } (Json.succeed tagger)
 
 onDragLeave : msg -> Attribute msg
 onDragLeave tagger =
   on "dragleave" (Json.succeed tagger)
+
+onDrop : msg -> Attribute msg
+onDrop tagger =
+  on "drop" (Json.succeed tagger)
 
 -- Helpers
 (=>) = (,)

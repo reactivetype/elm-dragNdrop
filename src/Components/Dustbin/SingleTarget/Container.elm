@@ -34,7 +34,7 @@ subscriptions = \_ -> Sub.none
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-  case msg of
+  case Debug.log "container msg" msg of
     Bin msg' ->
       let
         (bin, cmd) = Bin.update msg' model.bin

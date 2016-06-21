@@ -81,8 +81,6 @@ updateModel msg model =
     (DragStarted {name, position}, _) ->
       {model | drag = Just (Drag position position)}
     (DragAt {name, position}, _) ->
-      if (position.x == 0 && position.y == 0) then model
-      else
         let
           newDrag = Maybe.map (\{start} -> Drag start position) model.drag
         in {model | drag = newDrag }
