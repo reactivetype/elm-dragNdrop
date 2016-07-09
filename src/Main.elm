@@ -7,19 +7,20 @@ import Html.Events exposing ( onClick )
 import Components.Card as Card
 import Components.Mice as Mice
 import Components.Square as Square
+import Components.DustBin.SingleTarget.Container as MyProg
 
 -- APP
 main : Program Never
 main =
   Html.program
-    { init = Square.init
-    , view = Square.view
-    , update = Square.update
-    , subscriptions = Square.subscriptions
+    { init = MyProg.init
+    , view = MyProg.view
+    , update = MyProg.update
+    , subscriptions = MyProg.subscriptions
     }
 
-  --Html.beginnerProgram
-  --  { model = Card.init
-  --  , view = Card.view
-  --  , update = Card.update
-  --  }
+--Html.beginnerProgram
+--  { model = Card.init
+--  , view = Card.view
+--  , update = Card.update
+--  }

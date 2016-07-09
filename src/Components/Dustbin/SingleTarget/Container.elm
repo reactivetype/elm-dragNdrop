@@ -1,4 +1,5 @@
-module Components.DustBin.SingleTarget.Container exposing (Model, Msg, init, view, update, subscriptions)
+module Components.DustBin.SingleTarget.Container exposing (
+  Model, Msg, init, view, update, subscriptions )
 
 import Html exposing (..)
 import Html.App as Html
@@ -10,6 +11,7 @@ import Components.DustBin.SingleTarget.Bin as Bin
 
 type alias Model =
   { bin : Bin.Model
+  , dragging : Maybe String
   , boxes : Dict String Box.Model
   }
 
@@ -24,7 +26,7 @@ init =
     positions = List.map (\(x, y) -> Position x y) [(20,30), (20,100), (20,170)]
     bs  = List.map2 Box.createWith boxNames positions
     dict = List.map2 (,) boxNames bs |> Dict.fromList
-  in ({ bin = bin , boxes = dict}, Cmd.none)
+  in ({ bin = bin, boxes = dict, dragging = Nothing}, Cmd.none)
 
 type Msg =
   Bin Bin.Msg | Box Box.Msg
@@ -34,12 +36,15 @@ subscriptions = \_ -> Sub.none
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-  case Debug.log "container msg" msg of
-    Bin msg' ->
+  case Debug.log "container msg" (msg, model) of
+    (Bin msg', _) ->
       let
         (bin, cmd) = Bin.update msg' model.bin
+
+        --(box', _) = Box.update (Box.Drop {name = newBox.name, position = {x=0,y=0}}) newBox
+
       in ({ model | bin = bin}, Cmd.map Bin cmd)
-    Box msg' ->
+    (Box msg', _) ->
       let
         boxName : String
         boxName = Box.name msg'
@@ -50,11 +55,23 @@ update msg model =
 
         updateBox = \box ->
           let
-            (newBox, cmd) = Box.update msg' box
-            updatedBoxes = Dict.insert boxName newBox model.boxes
-          in ({model | boxes = updatedBoxes}, Cmd.map Box cmd)
+            (box', cmd) = Box.update msg' box
+            updatedBoxes = Dict.insert boxName box' model.boxes
+
+            -- is there a way to avoid traversing the boxes?
+            dragging =
+              Dict.values updatedBoxes
+              |> List.filter Box.isDragging
+              |> List.head
+              |> Maybe.map (.name)
+
+            (newBin, _) = Bin.update (Bin.Dragging dragging) model.bin
+
+          in ({model | boxes = updatedBoxes, bin = newBin, dragging = dragging},
+              Cmd.map Box cmd)
       in
-        Maybe.map updateBox maybeUpdate |> Maybe.withDefault (model, Cmd.none)
+        Maybe.map updateBox maybeUpdate
+        |> Maybe.withDefault (model, Cmd.none)
 
 
 view : Model -> Html Msg
@@ -78,5 +95,3 @@ main =
     , view = view
     , subscriptions = subscriptions
     }
-
-

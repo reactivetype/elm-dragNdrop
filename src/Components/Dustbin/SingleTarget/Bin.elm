@@ -1,11 +1,10 @@
-module Components.DustBin.SingleTarget.Bin exposing (Model, Msg, init, view, update, subscriptions)
+module Components.DustBin.SingleTarget.Bin exposing (Model, Msg(..), init, view, update, subscriptions)
 
 import Html exposing (..)
 import Html.App as Html
 import Html.Attributes exposing (..)
 import Html.Events exposing (on, onWithOptions)
 import Json.Decode as Json
-import Mouse exposing (Position)
 import Dict exposing (Dict)
 
 
@@ -14,31 +13,49 @@ type alias Order = Int
 type alias Model =
   { content : Dict Order String
   , color : String
+  , dragging : Maybe String
   }
 
--- Messages
+
 type Msg
     = DraggedOver
     | DragLeft
     | InsertBox String
+    | Dragging (Maybe String)
 
 -- Init
 init : (Model, Cmd Msg)
-init = ( Model Dict.empty "lightgrey", Cmd.none )
+init = ( Model Dict.empty "lightgrey" Nothing, Cmd.none )
 
 -- View
 view : Model -> Html Msg
 view model =
   let
-    labelView : String -> Html Msg
-    labelView = \name -> div [] [ text name ]
-    backgroundColor = ["background-color" => model.color]
+    labelViewStyle =
+      [ "border" => "3px dashed white"
+      , "border-radius" => "5px"
+      , "padding" => "3px"
+      , "justify-content" => "center"
+      , "height" => "20px"
+      , "color" => "black"
+      , "font-size" => "14px"
+      , "font-family" => "Comic Sans MS"
+      , "background-color" => model.color
+      ]
+    labelView = \name ->
+      div
+        [ style ["align-items" => "center", "padding" => "2px"]]
+        [ div [ style labelViewStyle ] [ text name ] ]
+    backgroundColor = [ "background-color" => model.color ]
     labels = List.map labelView (Dict.values model.content)
+    boxName = case model.dragging of
+      (Just name) -> name
+      Nothing -> ""
   in
     div
       [ onDragOver DraggedOver
       , onDragLeave DragLeft
-      , onDrop (InsertBox "Box inserted")
+      , onDrop <| InsertBox boxName
       , dropzone "true"
       , style (styleSheet ++ backgroundColor)
       ] (text "Drop it like it's hot!" :: labels)
@@ -46,18 +63,19 @@ view model =
 
 -- Update
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model = (updateModel msg model, Cmd.none)
-
-updateModel : Msg -> Model -> Model
-updateModel msg model =
+update msg model =
   case Debug.log "message" msg of
     InsertBox box ->
       let
         numBoxes = Dict.size model.content
       in
-        { model | content = Dict.insert (numBoxes+1) box model.content }
-    DraggedOver -> { model | color = "lightgreen" }
-    DragLeft -> { model | color = "lightgrey" }
+        { model
+        | content = Dict.insert (numBoxes+1) box model.content
+        , color = "lightgrey"
+        } ! []
+    DraggedOver -> { model | color = "lightgreen" } ! []
+    DragLeft -> { model | color = "lightgrey" } ! []
+    Dragging boxName -> { model | dragging = boxName } ! []
 
 -- Subscriptions
 subscriptions _ = Sub.none
@@ -65,7 +83,10 @@ subscriptions _ = Sub.none
 -- Drag event handlers
 onDragOver : msg -> Attribute msg
 onDragOver tagger =
-  onWithOptions "dragover" { preventDefault = True, stopPropagation = True } (Json.succeed tagger)
+  onWithOptions
+    "dragover"
+    { preventDefault = True, stopPropagation = True }
+    (Json.succeed tagger)
 
 onDragLeave : msg -> Attribute msg
 onDragLeave tagger =
@@ -86,8 +107,8 @@ px number =
 styleSheet =
   [ "top" => "2em"
   , "left" => "20em"
-  , "height" => "12rem"
-  , "width" => "12rem"
+  , "height" => "20rem"
+  , "width" => "15rem"
   , "marginRight" => "1.5rem"
   , "marginBottom" => "1.5rem"
   , "color" => "white"

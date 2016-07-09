@@ -1,4 +1,4 @@
-module Components.DustBin.SingleTarget.Box exposing (Model, Msg(..), name, isDropped, init, createWith, view, update)
+module Components.DustBin.SingleTarget.Box exposing (Model, Msg(..), name, isDropped, isDragging, init, createWith, view, update)
 
 import Html exposing (..)
 import Html.App as Html
@@ -31,12 +31,14 @@ type Msg
     = DragStarted Context
     | DragAt Context
     | DragEnded Context
+    | Drop Context
 
 context : Msg -> Context
 context msg = case msg of
   DragStarted ctx -> ctx
   DragAt ctx -> ctx
   DragEnded ctx -> ctx
+  Drop ctx -> ctx
 
 -- Init
 init : (Model, Cmd Msg)
@@ -52,6 +54,9 @@ init =
 
 isDropped : Model -> Bool
 isDropped model = model.status == Dropped
+
+isDragging : Model -> Bool
+isDragging model = model.drag /= Nothing
 
 createWith : String -> Position -> Model
 createWith name position =
@@ -80,7 +85,7 @@ update msg model = (updateModel msg model, Cmd.none)
 
 updateModel : Msg -> Model -> Model
 updateModel msg model =
-  case Debug.log "message" (msg, model) of
+  case (msg, model) of
     (DragStarted {name, position}, _) ->
       {model | drag = Just (Drag position position)}
     (DragAt {name, position}, _) ->
@@ -93,6 +98,7 @@ updateModel msg model =
       if name == model.name
       then { model | position = getPosition model, drag = Nothing}
       else model
+    (Drop _, _) -> { model | status = Dropped }
 
 -- Subscriptions
 subscriptions _ = Sub.none
@@ -145,12 +151,12 @@ styleSheet =
   , "position" => "absolute"
   ]
 
--- APP
-main : Program Never
-main =
-  Html.program
-    { init = init
-    , view = view
-    , update = update
-    , subscriptions = subscriptions
-    }
+---- APP
+--main : Program Never
+--main =
+--  Html.program
+--    { init = init
+--    , view = view
+--    , update = update
+--    , subscriptions = subscriptions
+--    }
